@@ -41,26 +41,26 @@
         }
         .calendar-header {
             font-weight: 600;
-            background-color: #f3f4f6; /* Grigio chiaro per header calendario */
+            background-color: #f3f4f6;
         }
         .calendar-day {
             cursor: pointer;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
         .calendar-day:not(.empty-day):not(.past-day):not(.disabled-day):hover {
-            background-color: #d1fae5; /* Verde chiaro hover */
+            background-color: #d1fae5;
         }
         .calendar-day.selected-check-in, .calendar-day.selected-check-out {
-            background-color: #10b981; /* Verde selezionato */
+            background-color: #10b981;
             color: white;
             font-weight: bold;
         }
         .calendar-day.in-range {
-            background-color: #a7f3d0; /* Verde più tenue per range */
-            color: #065f46; /* Testo scuro per range */
+            background-color: #a7f3d0;
+            color: #065f46;
         }
         .calendar-day.past-day, .calendar-day.disabled-day {
-            color: #9ca3af; /* Grigio per giorni passati/disabilitati */
+            color: #9ca3af;
             cursor: not-allowed;
             text-decoration: line-through;
         }
@@ -77,10 +77,10 @@
             justify-content: center;
             width: 32px;
             height: 32px;
-            background-color: #e2e8f0; /* Grigio chiaro per placeholder icona */
+            background-color: #e2e8f0;
             border-radius: 50%;
             font-weight: bold;
-            color: #4a5568; /* Grigio scuro per testo icona */
+            color: #4a5568;
             margin-right: 8px;
             font-size: 16px;
         }
@@ -102,22 +102,16 @@
             max-height: 400px; 
             overflow-y: auto; 
         }
-        /* Stili per messaggi di feedback */
         .feedback-message {
             padding: 1rem;
             border-radius: 0.5rem;
             margin-bottom: 1rem;
             font-weight: 500;
         }
-        .feedback-success {
-            background-color: #d1fae5; /* Verde chiaro */
-            color: #065f46; /* Verde scuro */
-            border: 1px solid #6ee7b7; /* Bordo Verde */
-        }
         .feedback-error {
-            background-color: #fee2e2; /* Rosso chiaro */
-            color: #991b1b; /* Rosso scuro */
-            border: 1px solid #fca5a5; /* Bordo Rosso */
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
         }
     </style>
 </head>
@@ -258,7 +252,7 @@
                 <button class="close-request-modal-btn text-gray-500 hover:text-gray-700 text-2xl">×</button>
             </div>
             
-            <div id="generalFeedback" class="feedback-message hidden"></div>
+            <div id="generalFeedback" class="feedback-message feedback-error hidden"></div>
 
             <div id="calendarStep">
                 <p id="modalInstruction" class="text-sm text-gray-600 mb-3">Seleziona la data di check-in. Soggiorno minimo: 3 giorni.</p>
@@ -348,14 +342,12 @@
         <div class="container mx-auto px-6 text-center">
             <p>© 2025 Vacanze ad Agerola di Antonio e Irina. Tutti i diritti riservati.</p>
             <p class="mt-2">Contattaci: info@vacanzeagerola.example.com | +39 123 456 789</p>
-            <p class="text-xs mt-2">Backend in ascolto su: <span id="backendStatus" class="text-yellow-400">Verifica in corso...</span></p>
         </div>
     </footer>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const MIN_STAY_DAYS = 3;
-        const BACKEND_URL = 'http://localhost:3001'; // URL del tuo server backend
 
         let currentAccommodationType = null; 
         let currentAccommodationName = '';
@@ -431,22 +423,14 @@
             extraServicesCheckboxesContainer.appendChild(div);
         });
 
-        // Funzione per mostrare/nascondere feedback generale
-        function showGeneralFeedback(message, type = 'error') {
+        function showGeneralFeedback(message) {
             generalFeedback.textContent = message;
-            generalFeedback.classList.remove('hidden', 'feedback-success', 'feedback-error');
-            if (type === 'success') {
-                generalFeedback.classList.add('feedback-success');
-            } else {
-                generalFeedback.classList.add('feedback-error');
-            }
-            // Nasconde il messaggio dopo alcuni secondi
+            generalFeedback.classList.remove('hidden');
             setTimeout(() => {
                 generalFeedback.classList.add('hidden');
             }, 7000);
         }
         
-        // Funzione per mostrare/nascondere lo spinner di caricamento
         function toggleLoading(isLoading) {
             if (isLoading) {
                 submitText.classList.add('hidden');
@@ -471,7 +455,7 @@
 
             const calendarGrid = document.createElement('div');
             calendarGrid.className = 'calendar';
-            dayNames.slice(1).concat(dayNames[0]).forEach(day => { // Lunedì come primo giorno
+            dayNames.slice(1).concat(dayNames[0]).forEach(day => {
                 const dayHeader = document.createElement('div');
                 dayHeader.className = 'calendar-header';
                 dayHeader.textContent = day;
@@ -563,7 +547,7 @@
             calendarStep.classList.remove('hidden');
             formStep.classList.add('hidden');
             confirmationStep.classList.add('hidden');
-            toggleLoading(false); // Assicura che lo spinner sia nascosto
+            toggleLoading(false);
         }
 
         document.querySelectorAll('.open-request-modal-btn').forEach(button => {
@@ -578,7 +562,7 @@
                 currentMonth = today.getMonth();
                 currentYear = today.getFullYear();
                 
-                resetModalStateAndForm(); // Usa la nuova funzione di reset
+                resetModalStateAndForm();
 
                 if (currentAccommodationType === 'hotel') {
                     maxUnitsAllowed = parseInt(accommodationCard.dataset.maxRooms) || 20;
@@ -613,7 +597,7 @@
                 modal.classList.remove('flex');
             }, 300);
             document.body.classList.remove('modal-open');
-            resetModalStateAndForm(); // Resetta anche quando si chiude
+            resetModalStateAndForm();
         }
 
         modal.querySelectorAll('.close-request-modal-btn, #closeConfirmationBtn').forEach(btn => btn.addEventListener('click', closeModal));
@@ -640,10 +624,9 @@
             modalInstruction.textContent = 'Modifica le date o procedi. Soggiorno minimo: 3 giorni.';
         });
 
-        // GESTIONE INVIO RICHIESTA AL BACKEND
         submitRequestBtn.addEventListener('click', async () => {
             let isValid = true;
-            generalFeedback.classList.add('hidden'); // Nasconde feedback precedenti
+            generalFeedback.classList.add('hidden');
 
             const numPeople = parseInt(numPeopleInput.value);
             if (isNaN(numPeople) || numPeople < 1) {
@@ -684,7 +667,7 @@
             }
 
             if (!isValid) {
-                showGeneralFeedback("Per favore, correggi gli errori nel modulo.", 'error');
+                showGeneralFeedback("Per favore, correggi gli errori nel modulo.");
                 return;
             }
 
@@ -708,7 +691,8 @@
             toggleLoading(true);
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/richieste-disponibilita`, {
+                // MODIFICA: La richiesta ora usa un percorso relativo, non più un URL assoluto.
+                const response = await fetch(`/api/richieste-disponibilita`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -716,52 +700,26 @@
                     body: JSON.stringify(requestData),
                 });
 
-                const result = await response.json(); // Leggi sempre il corpo della risposta
+                const result = await response.json();
 
-                if (response.ok) { // Status code 200-299
+                if (response.ok) {
                     console.log('Risposta di successo dal backend:', result);
                     confirmationTitle.textContent = "Richiesta Inviata Correttamente!";
-                    confirmationMessage.textContent = result.message || "Grazie! Ti contatteremo al più presto.";
+                    confirmationMessage.textContent = result.message;
                     formStep.classList.add('hidden');
                     calendarStep.classList.add('hidden');
                     confirmationStep.classList.remove('hidden');
                 } else {
-                    // Errore HTTP (es. 400, 500)
                     console.error('Errore dal backend:', result);
-                    showGeneralFeedback(`Errore nell'invio: ${result.message || response.statusText}`, 'error');
-                     // Non passare alla schermata di conferma, resta sul form
+                    showGeneralFeedback(`Errore nell'invio: ${result.message || response.statusText}`);
                 }
             } catch (error) {
                 console.error('Errore di rete o durante la richiesta fetch:', error);
-                showGeneralFeedback('Si è verificato un problema di connessione con il server. Riprova più tardi.', 'error');
-                 // Non passare alla schermata di conferma, resta sul form
+                showGeneralFeedback('Si è verificato un problema di connessione con il server. Riprova più tardi.');
             } finally {
                 toggleLoading(false);
             }
         });
-
-        // Verifica stato backend al caricamento pagina (opzionale)
-        const backendStatusEl = document.getElementById('backendStatus');
-        async function checkBackendStatus() {
-            if (!backendStatusEl) return;
-            try {
-                const response = await fetch(`${BACKEND_URL}/`); // Chiama la rotta base del backend
-                if (response.ok) {
-                    backendStatusEl.textContent = 'Online';
-                    backendStatusEl.classList.remove('text-yellow-400', 'text-red-400');
-                    backendStatusEl.classList.add('text-green-400');
-                } else {
-                    throw new Error(`Status: ${response.status}`);
-                }
-            } catch (error) {
-                console.warn('Backend non raggiungibile:', error);
-                backendStatusEl.textContent = 'Offline';
-                backendStatusEl.classList.remove('text-yellow-400', 'text-green-400');
-                backendStatusEl.classList.add('text-red-400');
-            }
-        }
-        checkBackendStatus(); // Verifica subito
-        setInterval(checkBackendStatus, 30000); // E poi ogni 30 secondi
     });
 </script>
 
