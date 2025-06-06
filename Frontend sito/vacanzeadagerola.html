@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacanze ad Agerola - Scegli il Tuo Soggiorno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .accommodation-card, .extra-service-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .accommodation-card:hover, .extra-service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+        }
+        .btn-custom {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .calendar-header, .calendar-day {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .calendar-header {
+            font-weight: 600;
+            background-color: #f3f4f6; /* Grigio chiaro per header calendario */
+        }
+        .calendar-day {
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .calendar-day:not(.empty-day):not(.past-day):not(.disabled-day):hover {
+            background-color: #d1fae5; /* Verde chiaro hover */
+        }
+        .calendar-day.selected-check-in, .calendar-day.selected-check-out {
+            background-color: #10b981; /* Verde selezionato */
+            color: white;
+            font-weight: bold;
+        }
+        .calendar-day.in-range {
+            background-color: #a7f3d0; /* Verde più tenue per range */
+            color: #065f46; /* Testo scuro per range */
+        }
+        .calendar-day.past-day, .calendar-day.disabled-day {
+            color: #9ca3af; /* Grigio per giorni passati/disabilitati */
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .calendar-day.empty-day {
+            cursor: default;
+            background-color: transparent !important;
+        }
+        .modal-open {
+            overflow: hidden;
+        }
+        .icon-placeholder { 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #e2e8f0; /* Grigio chiaro per placeholder icona */
+            border-radius: 50%;
+            font-weight: bold;
+            color: #4a5568; /* Grigio scuro per testo icona */
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        .map-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 56.25%; /* Aspect ratio 16:9 */
+        }
+        .map-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .form-section {
+            max-height: 400px; 
+            overflow-y: auto; 
+        }
+        /* Stili per messaggi di feedback */
+        .feedback-message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .feedback-success {
+            background-color: #d1fae5; /* Verde chiaro */
+            color: #065f46; /* Verde scuro */
+            border: 1px solid #6ee7b7; /* Bordo Verde */
+        }
+        .feedback-error {
+            background-color: #fee2e2; /* Rosso chiaro */
+            color: #991b1b; /* Rosso scuro */
+            border: 1px solid #fca5a5; /* Bordo Rosso */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800">Vacanze ad Agerola</h1>
+            <p class="mt-4 text-lg text-gray-600">Scopri la vetta della Costiera Amalfitana con Antonio e Irina. Offriamo tre esperienze di soggiorno uniche, pensate per ogni tipo di viaggiatore.</p>
+        </div>
+    </header>
+
+    <!-- Sezione Alloggi -->
+    <main class="container mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <!-- Opzione 1: Hotel Risorgimento -->
+            <div class="accommodation-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col" data-accommodation-type="hotel" data-max-rooms="20">
+                <img src="https://placehold.co/600x400/059669/FFFFFF?text=Hotel+Risorgimento" alt="Immagine Hotel Risorgimento" class="w-full h-56 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/FFFFFF?text=Immagine+non+disponibile';">
+                <div class="p-6 flex flex-col flex-grow">
+                    <h2 class="text-2xl font-semibold text-emerald-600 mb-3">Hotel Risorgimento</h2>
+                    <p class="text-gray-700 mb-4 flex-grow">
+                        Un hotel storico a gestione familiare, dove l'ospitalità è di casa. Goditi il nostro ristorante con cucina tipica, la pizzeria con forno a legna e la nostra terrazza panoramica per momenti di relax.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 mb-6 space-y-1">
+                        <li>Atmosfera familiare</li>
+                        <li>Ristorante e Pizzeria interni</li>
+                        <li>Terrazza panoramica</li>
+                        <li>Colazione con prodotti locali</li>
+                    </ul>
+                    <button class="btn-custom open-request-modal-btn mt-auto block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg text-center">
+                        Richiedi Disponibilità
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opzione 2: B&B Palazzo Lauritano -->
+            <div class="accommodation-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col" data-accommodation-type="beb" data-max-rooms="7">
+                <img src="https://placehold.co/600x400/DC2626/FFFFFF?text=B%26B+Palazzo+Lauritano" alt="Immagine B&B Palazzo Lauritano" class="w-full h-56 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/FFFFFF?text=Immagine+non+disponibile';">
+                <div class="p-6 flex flex-col flex-grow">
+                    <h2 class="text-2xl font-semibold text-red-600 mb-3">B&B Palazzo Lauritano</h2>
+                    <p class="text-gray-700 mb-4 flex-grow">
+                        Vivi l'eleganza senza tempo di un soggiorno nel cuore di un autentico palazzo storico. Un'oasi di tranquillità e raffinatezza.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 mb-6 space-y-1">
+                        <li>Camere eleganti in edificio d'epoca</li>
+                        <li>Dettagli architettonici unici</li>
+                        <li>Colazione curata</li>
+                        <li>Privacy e tranquillità</li>
+                    </ul>
+                    <button class="btn-custom open-request-modal-btn mt-auto block w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg text-center">
+                        Richiedi Disponibilità
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opzione 3: I tre soli, appartamenti vacanza -->
+            <div class="accommodation-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col" data-accommodation-type="apartments" data-max-apartments="3">
+                <img src="https://placehold.co/600x400/F59E0B/FFFFFF?text=I+Tre+Soli" alt="Immagine I tre soli, appartamenti vacanza" class="w-full h-56 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/FFFFFF?text=Immagine+non+disponibile';">
+                <div class="p-6 flex flex-col flex-grow">
+                    <h2 class="text-2xl font-semibold text-yellow-600 mb-3">I tre soli, appartamenti vacanza</h2>
+                    <p class="text-gray-700 mb-4 flex-grow">
+                        Goditi la libertà e l'indipendenza dei nostri appartamenti. Perfetti per chi cerca privacy, comfort, terrazzo e posto auto.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 mb-6 space-y-1">
+                        <li>Ingresso indipendente</li>
+                        <li>Angolo cottura attrezzato</li>
+                        <li>Terrazzo privato</li>
+                        <li>Posto auto riservato</li>
+                    </ul>
+                    <button class="btn-custom open-request-modal-btn mt-auto block w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg text-center">
+                        Richiedi Disponibilità
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sezione Servizi Extra -->
+    <section class="bg-white py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">I Nostri Servizi Extra</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+                <div class="extra-service-card bg-gray-50 p-6 rounded-xl shadow-lg text-center flex flex-col items-center" data-service-name="Noleggio Veicoli">
+                    <div class="text-4xl text-sky-500 mb-4"><span class="icon-placeholder">V</span></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Noleggio Veicoli</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Scooter agili o auto confortevoli per esplorare Agerola e la Costiera in libertà.</p>
+                </div>
+                <div class="extra-service-card bg-gray-50 p-6 rounded-xl shadow-lg text-center flex flex-col items-center" data-service-name="Servizio Taxi / NCC">
+                     <div class="text-4xl text-amber-500 mb-4"><span class="icon-placeholder">T</span></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Servizio Taxi / NCC</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Transfer da/per aeroporti, stazioni o escursioni personalizzate con autista.</p>
+                </div>
+                <div class="extra-service-card bg-gray-50 p-6 rounded-xl shadow-lg text-center flex flex-col items-center" data-service-name="Guida Trekking">
+                    <div class="text-4xl text-lime-500 mb-4"><span class="icon-placeholder">G</span></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Guida Trekking</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Avventurati sui sentieri mozzafiato di Agerola con le nostre guide esperte.</p>
+                </div>
+                <div class="extra-service-card bg-gray-50 p-6 rounded-xl shadow-lg text-center flex flex-col items-center" data-service-name="Pulizia Extra">
+                    <div class="text-4xl text-violet-500 mb-4"><span class="icon-placeholder">P</span></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Pulizia Extra</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Servizio di pulizia infrasettimanale su richiesta per un soggiorno sempre impeccabile.</p>
+                </div>
+                <div class="extra-service-card bg-gray-50 p-6 rounded-xl shadow-lg text-center flex flex-col items-center" data-service-name="Cena in Terrazza">
+                    <div class="text-4xl text-rose-500 mb-4"><span class="icon-placeholder">C</span></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Cena in Terrazza</h3>
+                    <p class="text-gray-600 mb-4 text-sm flex-grow">Menù degustazione per conoscere il meglio dei nostri prodotti locali, con cocktail di benvenuto.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sezione Mappa -->
+    <section class="bg-gray-50 py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Dove Siamo: Agerola, la Vetta Panoramica</h2>
+            <div class="map-container rounded-xl shadow-lg overflow-hidden">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12094.95148029128!2d14.5300988407959!3d40.62801641896491!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x133b95f198113f97%3A0x795f823c8f3f2e9a!2s80051%20Agerola%20NA!5e0!3m2!1sit!2sit!4v1717438841888!5m2!1sit!2sit"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Mappa di Agerola">
+                </iframe>
+            </div>
+            <p class="text-center text-gray-600 mt-6">
+                Agerola, situata strategicamente sui Monti Lattari, offre viste spettacolari e un accesso privilegiato sia al mare che ai sentieri montani.
+                Un punto di partenza ideale per esplorare la Costiera Amalfitana, Pompei, Napoli e Capri.
+            </p>
+        </div>
+    </section>
+
+    <!-- Modali Richiesta Disponibilità -->
+    <div id="requestModal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50 p-4">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl transform scale-95">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-semibold">Richiedi Disponibilità</h3>
+                <button class="close-request-modal-btn text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div id="generalFeedback" class="feedback-message hidden"></div>
+
+            <div id="calendarStep">
+                <p id="modalInstruction" class="text-sm text-gray-600 mb-3">Seleziona la data di check-in. Soggiorno minimo: 3 giorni.</p>
+                <div class="calendar-navigation flex justify-between items-center mb-3">
+                    <button class="prev-month-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">< Prec</button>
+                    <h4 class="current-month-year text-lg font-semibold"></h4>
+                    <button class="next-month-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">Succ ></button>
+                </div>
+                <div class="calendar-container"></div>
+                <div id="dateSelectionError" class="mt-2 text-sm text-red-600"></div>
+            </div>
+
+            <div id="formStep" class="hidden mt-4">
+                <h4 class="text-lg font-semibold mb-3">Completa la tua Richiesta</h4>
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700">Periodo selezionato: <span id="selectedPeriod" class="font-semibold"></span></p>
+                </div>
+                <div class="form-section space-y-4">
+                    <div>
+                        <label for="numPeople" class="block text-sm font-medium text-gray-700">Numero di Persone*</label>
+                        <input type="number" name="numPeople" id="numPeople" min="1" value="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <p id="numPeopleError" class="text-xs text-red-500 mt-1 hidden">Inserire un numero valido di persone (minimo 1).</p>
+                    </div>
+
+                    <div id="roomsFieldContainer" class="hidden">
+                        <label for="numRooms" class="block text-sm font-medium text-gray-700">Numero di Camere*</label>
+                        <input type="number" name="numRooms" id="numRooms" min="1" value="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <p id="numRoomsError" class="text-xs text-red-500 mt-1 hidden">Inserire un numero valido di camere.</p>
+                    </div>
+
+                    <div id="apartmentsFieldContainer" class="hidden">
+                        <label for="numApartments" class="block text-sm font-medium text-gray-700">Numero di Appartamenti*</label>
+                        <input type="number" name="numApartments" id="numApartments" min="1" value="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <p id="numApartmentsError" class="text-xs text-red-500 mt-1 hidden">Inserire un numero valido di appartamenti.</p>
+                    </div>
+                    
+                    <div>
+                        <label for="preferences" class="block text-sm font-medium text-gray-700">Preferenze o esigenze (Opzionale)</label>
+                        <textarea name="preferences" id="preferences" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Es. letto matrimoniale, culla, allergie, orario di arrivo..."></textarea>
+                    </div>
+
+                    <div>
+                        <label for="contactInfo" class="block text-sm font-medium text-gray-700">Email o Telefono*</label>
+                        <input type="text" name="contactInfo" id="contactInfo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="latuamail@example.com o 3331234567">
+                        <p id="contactError" class="text-xs text-red-500 mt-1 hidden">Campo obbligatorio.</p>
+                    </div>
+                    <div>
+                        <h5 class="text-md font-medium text-gray-700 mb-2">Servizi Extra (Opzionali):</h5>
+                        <div id="extraServicesCheckboxes" class="space-y-2">
+                            <!-- Checkboxes verranno inserite qui da JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="backToCalendarBtn" type="button" class="btn-custom bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg">Indietro</button>
+                    <button id="submitRequestBtn" type="button" class="btn-custom bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">
+                        <span class="submit-text">Invia Richiesta</span>
+                        <span class="loading-spinner hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></span>
+                    </button>
+                </div>
+            </div>
+             <div id="confirmationStep" class="hidden mt-4 text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 id="confirmationTitle" class="text-xl font-semibold text-gray-800 mt-4">Richiesta Inviata!</h4>
+                <p id="confirmationMessage" class="text-gray-600 mt-2">Grazie! Ti contatteremo al più presto per confermare la disponibilità.</p>
+                <button id="closeConfirmationBtn" class="btn-custom mt-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg">Chiudi</button>
+            </div>
+        </div>
+    </div>
+    
+    <section class="bg-gray-200 py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-3xl font-semibold text-gray-700 mb-4">Perché Sceglierci ad Agerola?</h3>
+            <p class="text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Ciao! Siamo **Antonio e Irina**, una coppia che ha deciso di trasformare la passione per l'ospitalità e l'amore per Agerola in un nuovo progetto di vita.
+                "Vacanze ad Agerola" nasce dal desiderio di offrirvi non solo un alloggio, ma un'esperienza autentica sulla vetta della Costiera Amalfitana.
+                Per permettervi di assaporare appieno la bellezza dei nostri luoghi e di visitare le principali attrazioni senza stress, proponiamo un **soggiorno minimo di 3 giorni**.
+                Questo tempo vi darà l'opportunità di immergervi nella cultura locale, godervi i panorami mozzafiato e creare ricordi indimenticabili.
+                Saremo il vostro punto di riferimento diretto, con assistenza continua sul posto, pronti a darvi consigli e a farvi sentire come a casa.
+            </p>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-10">
+        <div class="container mx-auto px-6 text-center">
+            <p>© 2025 Vacanze ad Agerola di Antonio e Irina. Tutti i diritti riservati.</p>
+            <p class="mt-2">Contattaci: info@vacanzeagerola.example.com | +39 123 456 789</p>
+            <p class="text-xs mt-2">Backend in ascolto su: <span id="backendStatus" class="text-yellow-400">Verifica in corso...</span></p>
+        </div>
+    </footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const MIN_STAY_DAYS = 3;
+        const BACKEND_URL = 'http://localhost:3001'; // URL del tuo server backend
+
+        let currentAccommodationType = null; 
+        let currentAccommodationName = '';
+        let maxUnitsAllowed = 0; 
+
+        let currentMonth, currentYear;
+        let checkInDate = null;
+        let checkOutDate = null;
+        let currentSelectionState = 'check-in';
+
+        const modal = document.getElementById('requestModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalInstruction = document.getElementById('modalInstruction');
+        const calendarContainer = modal.querySelector('.calendar-container');
+        const monthYearDisplay = modal.querySelector('.current-month-year');
+        const dateSelectionError = document.getElementById('dateSelectionError');
+        
+        const calendarStep = document.getElementById('calendarStep');
+        const formStep = document.getElementById('formStep');
+        const confirmationStep = document.getElementById('confirmationStep');
+        const generalFeedback = document.getElementById('generalFeedback');
+        
+        const selectedPeriodDisplay = document.getElementById('selectedPeriod');
+        const numPeopleInput = document.getElementById('numPeople');
+        const numPeopleError = document.getElementById('numPeopleError');
+        
+        const roomsFieldContainer = document.getElementById('roomsFieldContainer');
+        const numRoomsInput = document.getElementById('numRooms');
+        const numRoomsError = document.getElementById('numRoomsError');
+
+        const apartmentsFieldContainer = document.getElementById('apartmentsFieldContainer');
+        const numApartmentsInput = document.getElementById('numApartments');
+        const numApartmentsError = document.getElementById('numApartmentsError');
+
+        const preferencesInput = document.getElementById('preferences');
+        const contactInfoInput = document.getElementById('contactInfo');
+        const contactError = document.getElementById('contactError');
+        const extraServicesCheckboxesContainer = document.getElementById('extraServicesCheckboxes');
+
+        const submitRequestBtn = document.getElementById('submitRequestBtn');
+        const submitText = submitRequestBtn.querySelector('.submit-text');
+        const loadingSpinner = submitRequestBtn.querySelector('.loading-spinner');
+
+        const confirmationTitle = document.getElementById('confirmationTitle');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+
+        const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                            "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+        const dayNames = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+
+        const extraServices = Array.from(document.querySelectorAll('.extra-service-card')).map(card => {
+            return card.dataset.serviceName || card.querySelector('h3').textContent;
+        });
+
+        extraServicesCheckboxesContainer.innerHTML = ''; 
+        extraServices.forEach(serviceName => {
+            const div = document.createElement('div');
+            div.classList.add('flex', 'items-center');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `extra-${serviceName.replace(/\s+/g, '-').toLowerCase()}`; 
+            checkbox.name = 'extraServices';
+            checkbox.value = serviceName;
+            checkbox.classList.add('h-4', 'w-4', 'text-indigo-600', 'border-gray-300', 'rounded', 'focus:ring-indigo-500');
+            
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = serviceName;
+            label.classList.add('ml-2', 'block', 'text-sm', 'text-gray-900');
+            
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            extraServicesCheckboxesContainer.appendChild(div);
+        });
+
+        // Funzione per mostrare/nascondere feedback generale
+        function showGeneralFeedback(message, type = 'error') {
+            generalFeedback.textContent = message;
+            generalFeedback.classList.remove('hidden', 'feedback-success', 'feedback-error');
+            if (type === 'success') {
+                generalFeedback.classList.add('feedback-success');
+            } else {
+                generalFeedback.classList.add('feedback-error');
+            }
+            // Nasconde il messaggio dopo alcuni secondi
+            setTimeout(() => {
+                generalFeedback.classList.add('hidden');
+            }, 7000);
+        }
+        
+        // Funzione per mostrare/nascondere lo spinner di caricamento
+        function toggleLoading(isLoading) {
+            if (isLoading) {
+                submitText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                submitRequestBtn.disabled = true;
+            } else {
+                submitText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                submitRequestBtn.disabled = false;
+            }
+        }
+
+        function renderCalendar() {
+            calendarContainer.innerHTML = '';
+            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            dateSelectionError.textContent = '';
+
+            const firstDayOfMonth = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7; 
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const calendarGrid = document.createElement('div');
+            calendarGrid.className = 'calendar';
+            dayNames.slice(1).concat(dayNames[0]).forEach(day => { // Lunedì come primo giorno
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-header';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day empty-day';
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                dayCell.textContent = day;
+                const currentDate = new Date(currentYear, currentMonth, day);
+                currentDate.setHours(0, 0, 0, 0);
+
+                if (currentDate < today) {
+                    dayCell.classList.add('past-day');
+                } else if (currentSelectionState === 'check-out' && checkInDate && currentDate <= checkInDate) {
+                    dayCell.classList.add('disabled-day');
+                } else {
+                    dayCell.addEventListener('click', () => handleDateClick(currentDate));
+                }
+                
+                if (checkInDate && currentDate.getTime() === checkInDate.getTime()) dayCell.classList.add('selected-check-in');
+                if (checkOutDate && currentDate.getTime() === checkOutDate.getTime()) dayCell.classList.add('selected-check-out');
+                if (checkInDate && checkOutDate && currentDate > checkInDate && currentDate < checkOutDate) dayCell.classList.add('in-range');
+
+                calendarGrid.appendChild(dayCell);
+            }
+            calendarContainer.appendChild(calendarGrid);
+        }
+
+        function handleDateClick(date) {
+            dateSelectionError.textContent = '';
+            if (currentSelectionState === 'check-in') {
+                checkInDate = date;
+                checkOutDate = null;
+                currentSelectionState = 'check-out';
+                modalInstruction.textContent = 'Seleziona la data di check-out. Soggiorno minimo: 3 giorni.';
+            } else if (currentSelectionState === 'check-out') {
+                if (date <= checkInDate) {
+                    dateSelectionError.textContent = 'La data di check-out deve essere successiva alla data di check-in.';
+                    return;
+                }
+                checkOutDate = date;
+                
+                const diffTime = Math.abs(checkOutDate - checkInDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1; 
+                
+                if (diffDays < MIN_STAY_DAYS) {
+                    dateSelectionError.textContent = `Il soggiorno minimo è di ${MIN_STAY_DAYS} giorni. Hai selezionato ${diffDays} giorni.`;
+                    checkOutDate = null; 
+                } else {
+                    selectedPeriodDisplay.textContent = `${checkInDate.toLocaleDateString('it-IT')} - ${checkOutDate.toLocaleDateString('it-IT')} (${diffDays} giorni)`;
+                    calendarStep.classList.add('hidden');
+                    formStep.classList.remove('hidden');
+                    confirmationStep.classList.add('hidden');
+                    modalInstruction.textContent = 'Seleziona la data di check-in. Soggiorno minimo: 3 giorni.';
+                }
+            }
+            renderCalendar();
+        }
+        
+        function resetModalStateAndForm() {
+            checkInDate = null;
+            checkOutDate = null;
+            currentSelectionState = 'check-in';
+            modalInstruction.textContent = 'Seleziona la data di check-in. Soggiorno minimo: 3 giorni.';
+            dateSelectionError.textContent = '';
+            generalFeedback.classList.add('hidden');
+            
+            numPeopleInput.value = '1';
+            numRoomsInput.value = '1';
+            numApartmentsInput.value = '1';
+            preferencesInput.value = '';
+            contactInfoInput.value = '';
+
+            [numPeopleError, numRoomsError, numApartmentsError, contactError].forEach(el => el.classList.add('hidden'));
+            
+            roomsFieldContainer.classList.add('hidden');
+            apartmentsFieldContainer.classList.add('hidden');
+
+            extraServicesCheckboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            calendarStep.classList.remove('hidden');
+            formStep.classList.add('hidden');
+            confirmationStep.classList.add('hidden');
+            toggleLoading(false); // Assicura che lo spinner sia nascosto
+        }
+
+        document.querySelectorAll('.open-request-modal-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const accommodationCard = button.closest('.accommodation-card');
+                currentAccommodationName = accommodationCard.querySelector('h2').textContent;
+                currentAccommodationType = accommodationCard.dataset.accommodationType;
+
+                modalTitle.textContent = `Richiedi Disponibilità: ${currentAccommodationName}`;
+                
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                
+                resetModalStateAndForm(); // Usa la nuova funzione di reset
+
+                if (currentAccommodationType === 'hotel') {
+                    maxUnitsAllowed = parseInt(accommodationCard.dataset.maxRooms) || 20;
+                    numRoomsInput.max = maxUnitsAllowed;
+                    numRoomsError.textContent = `Inserire un numero valido di camere (massimo ${maxUnitsAllowed}).`;
+                    roomsFieldContainer.classList.remove('hidden');
+                } else if (currentAccommodationType === 'beb') {
+                    maxUnitsAllowed = parseInt(accommodationCard.dataset.maxRooms) || 7;
+                    numRoomsInput.max = maxUnitsAllowed;
+                    numRoomsError.textContent = `Inserire un numero valido di camere (massimo ${maxUnitsAllowed}).`;
+                    roomsFieldContainer.classList.remove('hidden');
+                } else if (currentAccommodationType === 'apartments') {
+                    maxUnitsAllowed = parseInt(accommodationCard.dataset.maxApartments) || 3;
+                    numApartmentsInput.max = maxUnitsAllowed;
+                    numApartmentsError.textContent = `Inserire un numero valido di appartamenti (massimo ${maxUnitsAllowed}).`;
+                    apartmentsFieldContainer.classList.remove('hidden');
+                }
+                
+                renderCalendar();
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => modal.querySelector('.modal-content').classList.remove('scale-95'), 10);
+                document.body.classList.add('modal-open');
+            });
+        });
+
+        function closeModal() {
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+            document.body.classList.remove('modal-open');
+            resetModalStateAndForm(); // Resetta anche quando si chiude
+        }
+
+        modal.querySelectorAll('.close-request-modal-btn, #closeConfirmationBtn').forEach(btn => btn.addEventListener('click', closeModal));
+        modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+
+        modal.querySelector('.prev-month-btn').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+        });
+
+        modal.querySelector('.next-month-btn').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar();
+        });
+
+        document.getElementById('backToCalendarBtn').addEventListener('click', () => {
+            formStep.classList.add('hidden');
+            calendarStep.classList.remove('hidden');
+            confirmationStep.classList.add('hidden');
+            generalFeedback.classList.add('hidden');
+            currentSelectionState = 'check-out'; 
+            modalInstruction.textContent = 'Modifica le date o procedi. Soggiorno minimo: 3 giorni.';
+        });
+
+        // GESTIONE INVIO RICHIESTA AL BACKEND
+        submitRequestBtn.addEventListener('click', async () => {
+            let isValid = true;
+            generalFeedback.classList.add('hidden'); // Nasconde feedback precedenti
+
+            const numPeople = parseInt(numPeopleInput.value);
+            if (isNaN(numPeople) || numPeople < 1) {
+                numPeopleError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                numPeopleError.classList.add('hidden');
+            }
+
+            let unitsValue = 0;
+            let unitTypeForm = '';
+            if (currentAccommodationType === 'hotel' || currentAccommodationType === 'beb') {
+                unitsValue = parseInt(numRoomsInput.value);
+                unitTypeForm = "Camere";
+                if (isNaN(unitsValue) || unitsValue < 1 || unitsValue > maxUnitsAllowed) {
+                    numRoomsError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    numRoomsError.classList.add('hidden');
+                }
+            } else if (currentAccommodationType === 'apartments') {
+                unitsValue = parseInt(numApartmentsInput.value);
+                unitTypeForm = "Appartamenti";
+                if (isNaN(unitsValue) || unitsValue < 1 || unitsValue > maxUnitsAllowed) {
+                    numApartmentsError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    numApartmentsError.classList.add('hidden');
+                }
+            }
+            
+            const contactValue = contactInfoInput.value.trim();
+            if (!contactValue) {
+                contactError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                contactError.classList.add('hidden');
+            }
+
+            if (!isValid) {
+                showGeneralFeedback("Per favore, correggi gli errori nel modulo.", 'error');
+                return;
+            }
+
+            const preferencesValue = preferencesInput.value.trim();
+            const selectedExtrasList = Array.from(extraServicesCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            
+            const requestData = {
+                accommodationName: currentAccommodationName,
+                accommodationType: currentAccommodationType,
+                checkInDate: checkInDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                checkOutDate: checkOutDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                numPeople: numPeople,
+                numUnits: unitsValue,
+                unitType: unitTypeForm,
+                contactInfo: contactValue,
+                preferences: preferencesValue,
+                selectedExtras: selectedExtrasList
+            };
+
+            console.log("Dati da inviare al backend:", requestData);
+            toggleLoading(true);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/richieste-disponibilita`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                const result = await response.json(); // Leggi sempre il corpo della risposta
+
+                if (response.ok) { // Status code 200-299
+                    console.log('Risposta di successo dal backend:', result);
+                    confirmationTitle.textContent = "Richiesta Inviata Correttamente!";
+                    confirmationMessage.textContent = result.message || "Grazie! Ti contatteremo al più presto.";
+                    formStep.classList.add('hidden');
+                    calendarStep.classList.add('hidden');
+                    confirmationStep.classList.remove('hidden');
+                } else {
+                    // Errore HTTP (es. 400, 500)
+                    console.error('Errore dal backend:', result);
+                    showGeneralFeedback(`Errore nell'invio: ${result.message || response.statusText}`, 'error');
+                     // Non passare alla schermata di conferma, resta sul form
+                }
+            } catch (error) {
+                console.error('Errore di rete o durante la richiesta fetch:', error);
+                showGeneralFeedback('Si è verificato un problema di connessione con il server. Riprova più tardi.', 'error');
+                 // Non passare alla schermata di conferma, resta sul form
+            } finally {
+                toggleLoading(false);
+            }
+        });
+
+        // Verifica stato backend al caricamento pagina (opzionale)
+        const backendStatusEl = document.getElementById('backendStatus');
+        async function checkBackendStatus() {
+            if (!backendStatusEl) return;
+            try {
+                const response = await fetch(`${BACKEND_URL}/`); // Chiama la rotta base del backend
+                if (response.ok) {
+                    backendStatusEl.textContent = 'Online';
+                    backendStatusEl.classList.remove('text-yellow-400', 'text-red-400');
+                    backendStatusEl.classList.add('text-green-400');
+                } else {
+                    throw new Error(`Status: ${response.status}`);
+                }
+            } catch (error) {
+                console.warn('Backend non raggiungibile:', error);
+                backendStatusEl.textContent = 'Offline';
+                backendStatusEl.classList.remove('text-yellow-400', 'text-green-400');
+                backendStatusEl.classList.add('text-red-400');
+            }
+        }
+        checkBackendStatus(); // Verifica subito
+        setInterval(checkBackendStatus, 30000); // E poi ogni 30 secondi
+    });
+</script>
+
+</body>
+</html>
